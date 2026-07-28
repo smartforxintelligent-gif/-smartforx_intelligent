@@ -424,3 +424,10 @@ const expenses = await ANTI_CORRUPT.loadSecure('expenses'); // Returns null if t
 JSON.parse(localStorage.getItem('sf_corrupt_log') || '[]').forEach(l => {
   addThreat(`${l.action} by ${l.user} at ${l.time}`);
 });
+function addExpense(amount){
+  if(!ANTI_CORRUPT.checkFraud("EXPENSE", {amount})) return; // Will block if >50k
+  // proceed to save
+}
+JSON.parse(localStorage.getItem('sf_corrupt_log') || '[]').forEach(l => {
+  addThreat(`${l.action} by ${l.user} at ${l.time}`);
+});
