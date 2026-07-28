@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMARTFORX DEMO | Prediction + Automation + Scale</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body{background:#0A0A0A; color:white; font-family:Inter}
+ .gold{color:#C8A227}
+ .card{background:#111; border:1px solid #C8A227; border-radius:12px; padding:20px}
+ .agent{background:#1a1a1a; border-left:4px solid #00ff88; padding:10px; margin:8px 0}
+ .log{height:300px; overflow-y:auto; background:#000; font-family:monospace; font-size:12px; padding:10px}
+</style>
+</head>
+<body>
 
+<nav class="p-4 border-b border-[#C8A227] flex justify-between">
+  <h1 class="text-2xl font-bold gold">SMARTFORX <span class="text-white">OMNI-CORE DEMO</span></h1>
+  <button onclick="toggleScale()" class="bg-[#C8A227] text-black px-4 py-2 rounded font-bold">SCALE: <span id="agentCount">3</span> Agents</button>
+</nav>
+
+<div class="p-6 grid lg:grid-cols-3 gap-6">
+
+  <!-- 1. PREDICTION ENGINE -->
+  <div class="card lg:col-span-2">
+    <h2 class="text-xl font-bold mb-4">1. AI PREDICTION ENGINE</h2>
+    <canvas id="predictChart" height="100"></canvas>
+    <div class="mt-4">
+      <p>Risk Score: <span id="riskScore" class="text-3xl font-bold gold">0%</span></p>
+      <p id="predictText" class="text-sm text-gray-400">Analyzing 12,450 data points...</p>
+    </div>
+  </div>
+
+  <!-- 2. KPI -->
+  <div class="card">
+    <h2 class="text-xl font-bold mb-4">2. LIVE KPIs</h2>
+    <div class="space-y-3">
+      <div>Revenue: <span id="revenue" class="gold">$0</span></div>
+      <div>Errors: <span id="errors" class="text-red-500">0</span></div>
+      <div>Automations Run: <span id="autoRun" class="text-green-400">0</span></div>
+    </div>
+  </div>
+
+  <!-- 3. AUTOMATION AGENTS - SCALE -->
+  <div class="card lg:col-span-2">
+    <h2 class="text-xl font-bold mb-4">3. AUTONOMOUS AGENTS <span class="text-sm gold">[SCALE MODE]</span></h2>
+    <div id="agents"></div>
+  </div>
+
+  <!-- 4. AUDIT LOG -->
+  <div class="card">
+    <h2 class="text-xl font-bold mb-4">4. CORRUPTION-FREE AUDIT LOG</h2>
+    <div id="auditLog" class="log"></div>
+  </div>
+
+</div>
+
+<script>
+// ===== CORE ENGINE =====
+let agents = 3;
+let kpi = {revenue: 125000, errors: 0, autoRun: 0};
+let logCount = 0;
+
+// 1. PREDICTION CHART
+const ctx = document.getElementById('predictChart');
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: Array.from({length:20}, (_,i)=>`T-${20-i}`),
+    datasets: [{
+      label: 'Risk %',
+      data: Array(20).fill(0),
+      borderColor: '#C8A227',
+      tension: 0.4
+    }]
+  },
+  options: {plugins:{legend:{display:false}}, scales:{y:{max:100}}}
+});
+
+// 2. PREDICTION AI SIMULATION
+function runPrediction(){
+  const risk = Math.floor(Math.random()*40 + 10 + Math.sin(Date.now()/5000)*15);
+  document.getElementById('riskScore').innerText = risk + "%";
+
+  chart.data.datasets[0].data.shift();
+  chart.data.datasets[0].data.push(risk);
+  chart.update();
+
+  if(risk > 45) addLog(`PREDICTION: High Risk ${risk}%. Triggering Auto-Mitigation`);
+  if(risk > 60) triggerAutomation("CRITICAL: Freeze high-value transactions");
+  else if(risk > 40) triggerAutomation("WARNING: Increase monitoring");
+  else addLog("PREDICTION: System Stable");
+}
+
+// 3. AUTOMATION ENGINE
+function triggerAutomation(reason){
+  kpi.autoRun++;
+  document.getElementById('autoRun').innerText = kpi.autoRun;
+  addLog(`AUTOMATION: ${reason}`);
+
+  // Simulate agent doing work
+  const agentEl = document.querySelectorAll('.agent')[Math.floor(Math.random()*agents)];
+  if(agentEl){
+    agentEl.style.borderColor = "#ff4d4d";
+    setTimeout(()=>agentEl.style.borderColor="#00ff88",1000);
+  }
+}
+
+// 4. SCALE ENGINE - Add more agents
+function toggleScale(){
+  agents = agents === 3? 8 : 3;
+  document.getElementById('agentCount').innerText = agents;
+  renderAgents();
+  addLog(`SCALE: Increased to ${agents} autonomous agents`);
+}
+
+function renderAgents(){
+  const container = document.getElementById('agents');
+  container.innerHTML = '';
+  for(let i=1; i<=agents; i++){
+    container.innerHTML += `
+      <div class="agent">
+        <b>Agent ${i}</b> | Status: <span class="text-green-400">ACTIVE</span>
+        | Task: ${['Fraud Scan','API Monitor','Data Sync','Customer AI','Threat Hunt','Backup','Compliance','HR Bot'][i-1] || 'Idle'}
+      </div>
+    `;
+  }
+}
+
+// 5. CORRUPTION-FREE AUDIT LOG
+function addLog(msg){
+  logCount++;
+  const time = new Date().toLocaleTimeString();
+  document.getElementById('auditLog').innerHTML =
+    `[${time}] #${logCount} ${msg}<br>` + document.getElementById('auditLog').innerHTML;
+}
+
+// 6. KPI SIMULATOR
+setInterval(()=>{
+  kpi.revenue += Math.floor(Math.random()*200);
+  kpi.errors = Math.random() > 0.9? kpi.errors + 1 : kpi.errors;
+  document.getElementById('revenue').innerText = "$" + kpi.revenue.toLocaleString();
+  document.getElementById('errors').innerText = kpi.errors;
+}, 1000);
+
+// MAIN LOOP
+renderAgents();
+addLog("SYSTEM BOOT: SMARTFORX OMNI-CORE ONLINE");
+setInterval(runPrediction, 2000);
+setInterval(()=>addLog("Auto-backup completed"), 10000);
+
+</script>
+</body>
+</html>
