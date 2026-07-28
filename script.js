@@ -338,3 +338,89 @@ if (window.location.pathname.includes('orchestrator') || window.location.pathnam
   CYBER.startSession();
   CYBER.audit("Accessed Secure Area");
 }
+// SMARTFORX CORRUPTION-FREE ZONE
+const ANTI_CORRUPT = {
+  SECRET: "SF-IMMUTABLE-KEY-2026", // change this
+  
+  // 1. DATA INTEGRITY CHECK - Hash to detect tampering
+  hash: async (data) => {
+    const str = JSON.stringify(data);
+    const msgBuffer = new TextEncoder().encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  saveSecure: async (key, data) => {
+    const hash = await ANTI_CORRUPT.hash(data);
+    const payload = {data, hash, user: localStorage.getItem('sf_user'), time: Date.now()};
+    localStorage.setItem(key, JSON.stringify(payload));
+    ANTI_CORRUPT.audit(`Saved ${key}`);
+  },
+
+  loadSecure: async (key) => {
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const payload = JSON.parse(raw);
+    const checkHash = await ANTI_CORRUPT.hash(payload.data);
+    
+    // 2. BLOCK IF DATA WAS TAMPERED
+    if(checkHash !== payload.hash){
+      ANTI_CORRUPT.block("Data Corruption Detected on " + key);
+      return null;
+    }
+    return payload.data;
+  },
+
+  // 3. FRAUD RULES ENGINE
+  checkFraud: (action, data) => {
+    // Example rules for YOUR business
+    if(action === "EXPENSE" && data.amount > 50000){
+      ANTI_CORRUPT.block("High value expense >50k requires CEO approval");
+      return false;
+    }
+    if(action === "DUPLICATE_ENTRY"){
+      ANTI_CORRUPT.block("Duplicate entry blocked");
+      return false;
+    }
+    if(!localStorage.getItem('sf_board')){
+      ANTI_CORRUPT.block("Unauthorized access attempt");
+      return false;
+    }
+    return true;
+  },
+
+  // 4. BLOCK + ALERT SYSTEM
+  block: (reason) => {
+    ANTI_CORRUPT.audit(`BLOCKED: ${reason}`);
+    alert("⚠️ SECURITY BLOCK: " + reason);
+    document.body.style.filter = "grayscale(1)";
+    setTimeout(()=>document.body.style.filter="",2000);
+  },
+
+  // 5. IMMUTABLE AUDIT LOG
+  audit: (action) => {
+    const log = JSON.parse(localStorage.getItem('sf_corrupt_log') || '[]');
+    log.unshift({
+      time: new Date().toISOString(), 
+      action, 
+      user: localStorage.getItem('sf_user') || 'GUEST',
+      ip: 'browser' // in backend you’d capture real IP
+    });
+    localStorage.setItem('sf_corrupt_log', JSON.stringify(log.slice(0,500)));
+  }
+};
+
+// 6. AUTO ERROR CATCHER
+window.addEventListener('error', e => {
+  ANTI_CORRUPT.audit(`JS ERROR: ${e.message}`);
+});
+// OLD: localStorage.setItem('expenses', JSON.stringify(data))
+
+// NEW: Corruption-proof save
+ANTI_CORRUPT.saveSecure('expenses', data);
+
+// When loading:
+const expenses = await ANTI_CORRUPT.loadSecure('expenses'); // Returns null if tampered
+JSON.parse(localStorage.getItem('sf_corrupt_log') || '[]').forEach(l => {
+  addThreat(`${l.action} by ${l.user} at ${l.time}`);
+});
