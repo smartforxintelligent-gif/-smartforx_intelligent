@@ -431,3 +431,14 @@ function addExpense(amount){
 JSON.parse(localStorage.getItem('sf_corrupt_log') || '[]').forEach(l => {
   addThreat(`${l.action} by ${l.user} at ${l.time}`);
 });
+npx create-next-app@latest smartforx-pro
+cd smartforx-pro
+npm install openai chart.js react-chartjs-2
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+OPENAI_API_KEY=sk-your-key-here
+module.exports = {
+  content: ["./app/**/*.{js,ts,jsx,tsx}"],
+  theme: { extend: { colors: { 'sf-black': '#0A0A0A', 'sf-gold': '#C8A227' } }
+}
+  
