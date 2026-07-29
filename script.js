@@ -536,4 +536,96 @@ export default function Dashboard() {
 }
 git init && git add. && git commit -m "v7.1"
 vercel deploy
+'use client'
+export default function Contact() {
+  return (
+    <div className="max-w-2xl mx-auto p-8">
+      <h2 className="text-4xl font-bold text-sf-gold mb-2">Book Your Automation Call</h2>
+      <p className="text-gray-400 mb-6">Leads hit my inbox + Slack instantly</p>
 
+      <form action="https://formspree.io/f/xqkqzrpl" method="POST" className="space-y-4">
+        <input type="text" name="company" placeholder="Company Name" required
+          className="w-full p-3 bg-[#1a1a1a] border-sf-gold rounded-lg"/>
+        <input type="email" name="email" placeholder="CEO Email" required
+          className="w-full p-3 bg-[#1a1a1a] border-sf-gold rounded-lg"/>
+        <textarea name="pain" placeholder="What process do you want automated?" rows="4"
+          className="w-full p-3 bg-[#1a1a1a] border border-sf-gold rounded-lg"></textarea>
+        <button type="submit" className="bg-sf-gold text-black font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 w-full">
+          Send To SMARTFORX
+        </button>
+      </form>
+      <p className="text-xs mt-4 text-gray-500">Replace xqkqzrpl with your Formspree ID</p>
+    </div>
+  )
+}
+'use client'
+import { useState } from 'react';
+
+export default function Chatbot() {
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState([{role:'ai', text:'Hello CEO. I am SMARTFORX AI. How can I automate your company today?'}]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const send = async () => {
+    if(!input) return;
+    setLoading(true);
+    const newMsgs = [...msgs, {role:'you', text:input}];
+    setMsgs(newMsgs);
+    setInput('');
+
+    const res = await fetch('/api/chat', {method:'POST', body:JSON.stringify({messages: newMsgs})});
+    const data = await res.json();
+    setMsgs([...newMsgs, {role:'ai', text:data.reply}]);
+    setLoading(false);
+  }
+
+  return (
+    <>
+      <button onClick={()=>setOpen(!open)} className="fixed bottom-6 right-6 bg-sf-gold text-black p-4 rounded-full shadow-2xl font-bold z-50">AI</button>
+      {open && (
+        <div className="fixed bottom-20 right-6 w-96 h-[500px] bg-black border-2 border-sf-gold rounded-xl p-4 flex flex-col z-50">
+          <h3 className="font-bold text-sf-gold mb-2">SMARTFORX AI Assistant</h3>
+          <div className="flex-1 overflow-y-auto space-y-3 mb-2">
+            {msgs.map((m,i)=>
+              <div key={i} className={`p-2 rounded ${m.role==='ai'?'bg-[#1a1a1a] text-sf-gold':'bg-sf-gold text-black'}`}>
+                {m.text}
+              </div>
+            )}
+            {loading && <div className="text-gray-400">AI is typing...</div>}
+          </div>
+          <div className="flex">
+            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
+              className="flex-1 bg-[#1a1a1a] p-2 text-white rounded-l border border-sf-gold"/>
+            <button onClick={send} className="bg-sf-gold text-black px-4 rounded-r font-bold">Send</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+import OpenAI from "openai";
+const openai = new OpenAI();
+
+export async function POST(req) {
+  const { messages } = await req.json();
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {role: "system", content: "You are SMARTFORX AI. You sell AI automation, cybersecurity, and business scaling. Be elite, direct, and close deals. Company: SMARTFORX"},
+     ...messages
+    ]
+  });
+  return Response.json({ reply: completion.choices[0].message.content });
+}
+// REPLACE the fake KPI interval with this:
+useEffect(() => {
+  const getRealData = async () => {
+    const res = await fetch('/api/sheets');
+    const realKpi = await res.json();
+    setKpi(realKpi);
+  }
+  getRealData();
+  const i = setInterval(getRealData, 10000); // refresh every 10s
+  return ()=>clearInterval(i)
+}, []);
