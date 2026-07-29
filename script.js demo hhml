@@ -32,3 +32,442 @@ export async function POST(req) {
 
   return Response.json({ risk, action, reasoning: aiText });
 }
+'use client'
+import { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale);
+
+export default function Dashboard() {
+  const [agents, setAgents] = useState(3);
+  const [risk, setRisk] = useState(0);
+  const [kpi, setKpi] = useState({revenue:125000, errors:0, autoRun:0});
+  const [logs, setLogs] = useState(["SYSTEM BOOT: OMNI-CORE ONLINE"]);
+  const [chartData, setChartData] = useState(Array(20).fill(0));
+
+  const addLog = (msg) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`,...prev].slice(0,50));
+
+  const runPrediction = async () => {
+    const res = await fetch('/api/predict', {
+      method: 'POST',
+      body: JSON.stringify({...kpi, riskHistory: chartData})
+    });
+    const data = await res.json();
+    setRisk(data.risk);
+    setChartData(prev => [...prev.slice(1), data.risk]);
+    addLog(`AI PREDICTION: Risk ${data.risk}%. ${data.action}`);
+    if(data.risk > 40){ setKpi(p=>({...p, autoRun: p.autoRun+1})); }
+  }
+
+  useEffect(() => {
+    const i1 = setInterval(runPrediction, 3000);
+    const i2 = setInterval(()=>setKpi(p=>({...p, revenue: p.revenue + Math.floor(Math.random()*200)})),1000);
+    return ()=>{clearInterval(i1); clearInterval(i2)}
+  }, [kpi]);
+
+  return (
+    <div className="p-6 grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 border border-sf-gold p-6 rounded-xl">
+        <h2 className="text-2xl font-bold text-sf-gold mb-4">AI PREDICTION ENGINE</h2>
+        <Line data={{labels: Array(20).fill(''), datasets:[{data: chartData, borderColor:'#C8A227'}]}} />
+        <p className="mt-4 text-4xl font-bold">Risk: <span className="text-sf-gold">{risk}%</span></p>
+      </div>
+
+      <div className="border border-sf-gold p-6 rounded-xl">
+        <h2 className="text-2xl font-bold text-sf-gold mb-4">LIVE KPIs</h2>
+        <p>Revenue: <span className="text-sf-gold">${kpi.revenue.toLocaleString()}</span></p>
+        <p>Errors: <span className="text-red-500">{kpi.errors}</span></p>
+        <p>Automations: <span className="text-green-400">{kpi.autoRun}</span></p>
+        <button onClick={()=>setAgents(agents===3?8:3)} className="mt-4 bg-sf-gold text-black px-4 py-2 rounded font-bold w-full">
+          SCALE: {agents} AGENTS
+        </button>
+      </div>
+
+      <div className="lg:col-span-2 border border-sf-gold p-6 rounded-xl">
+        <h2 className="text-2xl font-bold text-sf-gold mb-4">AUTONOMOUS AGENTS</h2>
+        {Array.from({length:agents}).map((_,i)=>(
+          <div key={i} className="bg-[#1a1a1a] border-l-4 border-green-400 p-3 my-2">
+            Agent {i+1} | ACTIVE | Task: {['Fraud Scan','API Monitor','Data Sync'][i%3]}
+          </div>
+        ))}
+      </div>
+
+      <div className="border border-sf-gold p-6 rounded-xl">
+        <h2 className="text-2xl font-bold text-sf-gold mb-4">AUDIT LOG</h2>
+        <div className="h-80 overflow-y-auto bg-black text-xs font-mono">
+          {logs.map((l,i)=><div key={i}>{l}</div>)}
+        </div>
+      </div>
+    </div>
+  )
+}
+git init && git add. && git commit -m "v7.1"
+vercel deploy
+'use client'
+export default function Contact() {
+  return (
+    <div className="max-w-2xl mx-auto p-8">
+      <h2 className="text-4xl font-bold text-sf-gold mb-2">Book Your Automation Call</h2>
+      <p className="text-gray-400 mb-6">Leads hit my inbox + Slack instantly</p>
+
+      <form action="https://formspree.io/f/xqkqzrpl" method="POST" className="space-y-4">
+        <input type="text" name="company" placeholder="Company Name" required
+          className="w-full p-3 bg-[#1a1a1a] border-sf-gold rounded-lg"/>
+        <input type="email" name="email" placeholder="CEO Email" required
+          className="w-full p-3 bg-[#1a1a1a] border-sf-gold rounded-lg"/>
+        <textarea name="pain" placeholder="What process do you want automated?" rows="4"
+          className="w-full p-3 bg-[#1a1a1a] border border-sf-gold rounded-lg"></textarea>
+        <button type="submit" className="bg-sf-gold text-black font-bold px-6 py-3 rounded-lg hover:bg-yellow-400 w-full">
+          Send To SMARTFORX
+        </button>
+      </form>
+      <p className="text-xs mt-4 text-gray-500">Replace xqkqzrpl with your Formspree ID</p>
+    </div>
+  )
+}
+'use client'
+import { useState } from 'react';
+
+export default function Chatbot() {
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState([{role:'ai', text:'Hello CEO. I am SMARTFORX AI. How can I automate your company today?'}]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const send = async () => {
+    if(!input) return;
+    setLoading(true);
+    const newMsgs = [...msgs, {role:'you', text:input}];
+    setMsgs(newMsgs);
+    setInput('');
+
+    const res = await fetch('/api/chat', {method:'POST', body:JSON.stringify({messages: newMsgs})});
+    const data = await res.json();
+    setMsgs([...newMsgs, {role:'ai', text:data.reply}]);
+    setLoading(false);
+  }
+
+  return (
+    <>
+      <button onClick={()=>setOpen(!open)} className="fixed bottom-6 right-6 bg-sf-gold text-black p-4 rounded-full shadow-2xl font-bold z-50">AI</button>
+      {open && (
+        <div className="fixed bottom-20 right-6 w-96 h-[500px] bg-black border-2 border-sf-gold rounded-xl p-4 flex flex-col z-50">
+          <h3 className="font-bold text-sf-gold mb-2">SMARTFORX AI Assistant</h3>
+          <div className="flex-1 overflow-y-auto space-y-3 mb-2">
+            {msgs.map((m,i)=>
+              <div key={i} className={`p-2 rounded ${m.role==='ai'?'bg-[#1a1a1a] text-sf-gold':'bg-sf-gold text-black'}`}>
+                {m.text}
+              </div>
+            )}
+            {loading && <div className="text-gray-400">AI is typing...</div>}
+          </div>
+          <div className="flex">
+            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
+              className="flex-1 bg-[#1a1a1a] p-2 text-white rounded-l border border-sf-gold"/>
+            <button onClick={send} className="bg-sf-gold text-black px-4 rounded-r font-bold">Send</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+import OpenAI from "openai";
+const openai = new OpenAI();
+
+export async function POST(req) {
+  const { messages } = await req.json();
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {role: "system", content: "You are SMARTFORX AI. You sell AI automation, cybersecurity, and business scaling. Be elite, direct, and close deals. Company: SMARTFORX"},
+     ...messages
+    ]
+  });
+  return Response.json({ reply: completion.choices[0].message.content });
+}
+export async function GET() {
+  // 1. Publish your Google Sheet to web: File > Share > Publish to web > CSV
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/gviz/tq?tqx=out:csv";
+  const res = await fetch(SHEET_URL);
+  const csv = await res.text();
+
+  // 2. Parse CSV to JSON
+  const [header,...rows] = csv.split('\n').map(r=>r.split(','));
+  const data = rows.map(r => ({revenue: Number(r[0]), errors: Number(r[1])}));
+
+  return Response.json(data[data.length-1]); // return latest row
+}
+// REPLACE the fake KPI interval with this:
+useEffect(() => {
+  const getRealData = async () => {
+    const res = await fetch('/api/sheets');
+    const realKpi = await res.json();
+    setKpi(realKpi);
+  }
+  getRealData();
+  const i = setInterval(getRealData, 10000); // refresh every 10s
+  return ()=>clearInterval(i)
+}, []);
+npm install @clerk/nextjs
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key
+CLERK_SECRET_KEY=sk_test_your_key
+OPENAI_API_KEY=sk_your_key
+import { ClerkProvider, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import './globals.css'
+
+export default function RootLayout({ children }) {
+  return (
+    <ClerkProvider>
+      <html>
+        <body className="bg-sf-black text-white">
+          <nav className="p-4 flex justify-between border-b border-sf-gold">
+            <h1 className="font-bold text-sf-gold">SMARTFORX</h1>
+            <SignedIn><UserButton /></SignedIn>
+            <SignedOut><a href="/sign-in">Login</a></SignedOut>
+          </nav>
+          {children}
+          <Chatbot/> 
+        </body>
+      </html>
+    </ClerkProvider>
+  )
+}
+npm install stripe
+STRIPE_SECRET_KEY=sk_test_your_key
+NEXT_PUBLIC_STRIPE_PRICE_ID=price_xxx
+'use client'
+export default function Pricing() {
+  const checkout = async () => {
+    const res = await fetch('/api/checkout', {method:'POST'});
+    const {url} = await res.json();
+    window.location = url;
+  }
+  return (
+    <div className="text-center p-20">
+      <h1 className="text-5xl font-bold">SMARTFORX PRO</h1>
+      <p className="text-4xl text-sf-gold my-4">$997<span className="text-lg">/month</span></p>
+      <p>AI Automation + Prediction + Audit Logs for your company</p>
+      <button onClick={checkout} className="bg-sf-gold text-black px-8 py-4 rounded-lg font-bold mt-6 text-xl">
+        Start 14-Day Free Trial
+      </button>
+    </div>
+  )
+}
+import { authMiddleware } from "@clerk/nextjs";
+export default authMiddleware({
+  publicRoutes: ["/", "/pricing", "/contact", "/api/chat"]
+});
+export const config = { matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"] };
+git add. && git commit -m "v8.0 SaaS with Stripe + Login"
+vercel deploy --prod
+npm install @vercel/postgres
+import { sql } from '@vercel/postgres';
+
+export async function saveCustomer(userId, email, sheetUrl) {
+  await sql`INSERT INTO customers (user_id, email, sheet_url) VALUES (${userId}, ${email}, ${sheetUrl}) ON CONFLICT (user_id) DO UPDATE SET sheet_url = ${sheetUrl}`;
+}
+
+export async function getCustomerSheet(userId) {
+  const { rows } = await sql`SELECT sheet_url FROM customers WHERE user_id = ${userId}`;
+  return rows[0]?.sheet_url;
+}
+CREATE TABLE customers (
+  user_id TEXT PRIMARY KEY,
+  email TEXT,
+  sheet_url TEXT
+);
+'use client'
+import { useUser } from '@clerk/nextjs'
+import { useState } from 'react'
+
+export default function Onboard() {
+  const { user } = useUser();
+  const [url, setUrl] = useState('');
+
+  const save = async () => {
+    await fetch('/api/save-sheet', {method:'POST', body:JSON.stringify({userId: user.id, email: user.primaryEmailAddress.emailAddress, sheetUrl: url})});
+    window.location = '/dashboard';
+  }
+
+  return (
+    <div className="p-10 max-w-xl mx-auto">
+      <h1 className="text-3xl font-bold text-sf-gold">Connect Your Data</h1>
+      <p>Paste your Google Sheet "Publish to Web CSV" link</p>
+      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://docs.google.com/.../csv" className="w-full bg-[#1a1a1a] p-3 border-sf-gold rounded mt-4"/>
+      <button onClick={save} className="bg-sf-gold text-black px-6 py-3 rounded font-bold mt-4">Connect & Go To Dashboard</button>
+    </div>
+  )
+}
+import { saveCustomer } from '@/lib/db';
+export async function POST(req) {
+  const body = await req.json();
+  await saveCustomer(body.userId, body.email, body.sheetUrl);
+  return Response.json({ok:true});
+}
+import { getCustomerSheet } from '@/lib/db';
+import { auth } from '@clerk/nextjs';
+
+export async function GET() {
+  const { userId } = auth();
+  const sheetUrl = await getCustomerSheet(userId);
+  if(!sheetUrl) return Response.json({error: "No sheet connected"}, {status: 400});
+
+  const res = await fetch(sheetUrl);
+  const csv = await res.text();
+  const [header,...rows] = csv.split('\n').map(r=>r.split(','));
+  const data = rows.map(r => ({revenue: Number(r[0]), errors: Number(r[1])}));
+  return Response.json(data[data.length-1]);
+}
+import { sql } from '@vercel/postgres';
+import { auth } from '@clerk/nextjs';
+
+export default async function Admin() {
+  const { userId } = auth();
+  // Replace with YOUR clerk user id
+  if(userId!== 'user_2xxxYOURID') return <div>Access Denied</div>;
+
+  const { rows } = await sql`SELECT * FROM customers`;
+
+  return (
+    <div className="p-10">
+      <h1 className="text-4xl font-bold text-sf-gold">SMARTFORX ADMIN</h1>
+      <p className="text-2xl">MRR: ${(rows.length * 997).toLocaleString()}/mo</p>
+      <table className="w-full mt-6 border border-sf-gold">
+        <thead><tr><th>Email</th><th>User ID</th><th>Sheet</th></tr></thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.user_id} className="border-t border-sf-gold">
+              <td>{r.email}</td><td>{r.user_id}</td><td className="text-xs truncate">{r.sheet_url}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+'use client'
+import { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
+
+// INDUSTRY CONFIG - THIS IS THE MAGIC
+const VERTICALS = {
+  healthcare: {
+    name: "Healthcare AI",
+    kpi1: "Patient Risk", kpi2: "Beds Available", kpi3: "Fraud Claims",
+    prediction: "Predict patient readmission + detect insurance fraud",
+    automation: "Auto-alert doctors + Auto-file insurance",
+    color: "#00C896"
+  },
+  finance: {
+    name: "Financial Services AI",
+    kpi1: "Fraud Score", kpi2: "Transactions", kpi3: "Churn Risk",
+    prediction: "Predict loan default + market crash",
+    automation: "Auto-freeze account + Auto-send compliance report",
+    color: "#C8A227"
+  },
+  ngo: {
+    name: "NGO Impact AI",
+    kpi1: "Funds Used", kpi2: "People Helped", kpi3: "Grant Risk",
+    prediction: "Predict donation drop + project failure",
+    automation: "Auto-send donor report + Auto-allocate budget",
+    color: "#4F46E5"
+  },
+  government: {
+    name: "Government AI",
+    kpi1: "Citizen Complaints", kpi2: "Budget Spent", kpi3: "Corruption Risk",
+    prediction: "Predict service bottlenecks + fraud",
+    automation: "Auto-escalate complaint + Auto-audit spending",
+    color: "#0EA5E9"
+  },
+  logistics: {
+    name: "Logistics AI",
+    kpi1: "Delivery Delay", kpi2: "Trucks Idle", kpi3: "Fuel Waste",
+    prediction: "Predict late delivery + route failure",
+    automation: "Auto-reroute truck + Auto-order fuel",
+    color: "#F97316"
+  },
+  manufacturing: {
+    name: "Manufacturing AI",
+    kpi1: "Machine Downtime", kpi2: "Defect Rate", kpi3: "Supply Risk",
+    prediction: "Predict machine failure 7 days early",
+    automation: "Auto-order parts + Auto-stop line",
+    color: "#EF4444"
+  },
+  education: {
+    name: "Education AI",
+    kpi1: "Dropout Risk", kpi2: "Student Score", kpi3: "Teacher Load",
+    prediction: "Predict failing student + curriculum gap",
+    automation: "Auto-assign tutor + Auto-generate quiz",
+    color: "#8B5CF6"
+  },
+  research: {
+    name: "Research Paper AI",
+    kpi1: "Papers Read", kpi2: "Citations", kpi3: "Plagiarism Risk",
+    prediction: "Predict research trend + paper impact",
+    automation: "Auto-summarize paper + Auto-find sources",
+    color: "#10B981"
+  }
+}
+
+export default function VerticalDemo({ params }) {
+  const industry = VERTICALS[params.industry] || VERTICALS.healthcare;
+  const [risk, setRisk] = useState(20);
+  const [kpi, setKpi] = useState({v1: 120, v2: 45, v3: 3});
+  const [logs, setLogs] = useState([`SYSTEM: ${industry.name} Online`]);
+
+  useEffect(() => {
+    const i = setInterval(() => {
+      const newRisk = Math.floor(Math.random()*50 + 10);
+      setRisk(newRisk);
+      setKpi(p => ({v1: p.v1+Math.floor(Math.random()*10), v2: p.v2+1, v3: Math.random()>.9?p.v3+1:p.v3}));
+      if(newRisk > 40) setLogs(prev => [`[${new Date().toLocaleTimeString()}] AUTO: ${industry.automation}`,...prev]);
+    }, 3000);
+    return ()=>clearInterval(i)
+  }, [industry]);
+
+  return (
+    <div className="p-8 grid lg:grid-cols-3 gap-6" style={{'--accent': industry.color}}>
+      <div className="lg:col-span-2 border rounded-xl p-6" style={{borderColor: industry.color}}>
+        <h1 className="text-3xl font-bold" style={{color: industry.color}}>{industry.name}</h1>
+        <p className="text-gray-400 mb-4">{industry.prediction}</p>
+
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-[#1a1a1a] p-4 rounded"><p>{industry.kpi1}</p><p className="text-2xl font-bold">{kpi.v1}</p></div>
+          <div className="bg-[#1a1a1a] p-4 rounded"><p>{industry.kpi2}</p><p className="text-2xl font-bold">{kpi.v2}</p></div>
+          <div className="bg-[#1a1a1a] p-4 rounded"><p>{industry.kpi3}</p><p className="text-2xl font-bold text-red-500">{kpi.v3}</p></div>
+        </div>
+
+        <p>AI Risk: <span className="text-4xl font-bold" style={{color: industry.color}}>{risk}%</span></p>
+      </div>
+
+      <div className="border rounded-xl p-6" style={{borderColor: industry.color}}>
+        <h2 className="font-bold text-xl mb-4">Live Automation Log</h2>
+        <div className="h-96 overflow-y-auto bg-black text-xs font-mono">
+          {logs.map((l,i)=><div key={i}>{l}</div>)}
+        </div>
+      </div>
+    </div>
+  )
+}
+import OpenAI from "openai";
+const openai = new OpenAI();
+
+export async function POST(req) {
+  const { industry } = await req.json();
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{
+      role: "system",
+      content: `You are SMARTFORX AI. Write a 3 paragraph case study for ${industry}.
+      Format: Problem, SMARTFORX Solution, Result with % ROI. Be specific.`
+    }]
+  });
+  return Response.json({ case: completion.choices[0].message.content });
+}
+'use client'
+export default function VerticalChatbot({industry}) {
+  // Same chatbot as before, but system prompt changes
+  const systemPrompt = `You are SMARTFORX AI for ${industry}. Help them automate and reduce costs.`
+  //... rest of chatbot code from before
+}
