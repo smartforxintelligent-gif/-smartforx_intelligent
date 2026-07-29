@@ -207,3 +207,5 @@ footer {
 }
 
 [BLACK BACKGROUND] SMARTFORX INTELLIGENT The Self-Optimizing Enterprise We deploy High-Intelligence AI and Zero-Error Systems... [ Book Strategic Demo] [ Explore OMNI CORE] [ 99.9999% Uptime] [ <0.01% Error Rate] [ 24/7 AI Operations]
+@tailwind base; @tailwind components; @tailwind utilities;
+body { background: #0A0A0A; color: white; }
