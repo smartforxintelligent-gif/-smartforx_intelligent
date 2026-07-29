@@ -629,3 +629,56 @@ useEffect(() => {
   const i = setInterval(getRealData, 10000); // refresh every 10s
   return ()=>clearInterval(i)
 }, []);
+npm install @clerk/nextjs
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key
+CLERK_SECRET_KEY=sk_test_your_key
+OPENAI_API_KEY=sk_your_key
+import { ClerkProvider, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import './globals.css'
+
+export default function RootLayout({ children }) {
+  return (
+    <ClerkProvider>
+      <html>
+        <body className="bg-sf-black text-white">
+          <nav className="p-4 flex justify-between border-b border-sf-gold">
+            <h1 className="font-bold text-sf-gold">SMARTFORX</h1>
+            <SignedIn><UserButton /></SignedIn>
+            <SignedOut><a href="/sign-in">Login</a></SignedOut>
+          </nav>
+          {children}
+          <Chatbot/> 
+        </body>
+      </html>
+    </ClerkProvider>
+  )
+}
+npm install stripe
+STRIPE_SECRET_KEY=sk_test_your_key
+NEXT_PUBLIC_STRIPE_PRICE_ID=price_xxx
+
+'use client'
+export default function Pricing() {
+  const checkout = async () => {
+    const res = await fetch('/api/checkout', {method:'POST'});
+    const {url} = await res.json();
+    window.location = url;
+  }
+  return (
+    <div className="text-center p-20">
+      <h1 className="text-5xl font-bold">SMARTFORX PRO</h1>
+      <p className="text-4xl text-sf-gold my-4">$997<span className="text-lg">/month</span></p>
+      <p>AI Automation + Prediction + Audit Logs for your company</p>
+      <button onClick={checkout} className="bg-sf-gold text-black px-8 py-4 rounded-lg font-bold mt-6 text-xl">
+        Start 14-Day Free Trial
+      </button>
+    </div>
+  )
+}
+import { authMiddleware } from "@clerk/nextjs";
+export default authMiddleware({
+  publicRoutes: ["/", "/pricing", "/contact", "/api/chat"]
+});
+export const config = { matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"] };
+git add. && git commit -m "v8.0 SaaS with Stripe + Login"
+vercel deploy --prod
