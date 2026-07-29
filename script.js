@@ -682,3 +682,88 @@ export default authMiddleware({
 export const config = { matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"] };
 git add. && git commit -m "v8.0 SaaS with Stripe + Login"
 vercel deploy --prod
+npm install @vercel/postgres
+import { sql } from '@vercel/postgres';
+
+export async function saveCustomer(userId, email, sheetUrl) {
+  await sql`INSERT INTO customers (user_id, email, sheet_url) VALUES (${userId}, ${email}, ${sheetUrl}) ON CONFLICT (user_id) DO UPDATE SET sheet_url = ${sheetUrl}`;
+}
+
+export async function getCustomerSheet(userId) {
+  const { rows } = await sql`SELECT sheet_url FROM customers WHERE user_id = ${userId}`;
+  return rows[0]?.sheet_url;
+}
+CREATE TABLE customers (
+  user_id TEXT PRIMARY KEY,
+  email TEXT,
+  sheet_url TEXT
+);
+'use client'
+import { useUser } from '@clerk/nextjs'
+import { useState } from 'react'
+
+export default function Onboard() {
+  const { user } = useUser();
+  const [url, setUrl] = useState('');
+
+  const save = async () => {
+    await fetch('/api/save-sheet', {method:'POST', body:JSON.stringify({userId: user.id, email: user.primaryEmailAddress.emailAddress, sheetUrl: url})});
+    window.location = '/dashboard';
+  }
+
+  return (
+    <div className="p-10 max-w-xl mx-auto">
+      <h1 className="text-3xl font-bold text-sf-gold">Connect Your Data</h1>
+      <p>Paste your Google Sheet "Publish to Web CSV" link</p>
+      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://docs.google.com/.../csv" className="w-full bg-[#1a1a1a] p-3 border-sf-gold rounded mt-4"/>
+      <button onClick={save} className="bg-sf-gold text-black px-6 py-3 rounded font-bold mt-4">Connect & Go To Dashboard</button>
+    </div>
+  )
+}
+import { saveCustomer } from '@/lib/db';
+export async function POST(req) {
+  const body = await req.json();
+  await saveCustomer(body.userId, body.email, body.sheetUrl);
+  return Response.json({ok:true});
+}
+import { getCustomerSheet } from '@/lib/db';
+import { auth } from '@clerk/nextjs';
+
+export async function GET() {
+  const { userId } = auth();
+  const sheetUrl = await getCustomerSheet(userId);
+  if(!sheetUrl) return Response.json({error: "No sheet connected"}, {status: 400});
+
+  const res = await fetch(sheetUrl);
+  const csv = await res.text();
+  const [header,...rows] = csv.split('\n').map(r=>r.split(','));
+  const data = rows.map(r => ({revenue: Number(r[0]), errors: Number(r[1])}));
+  return Response.json(data[data.length-1]);
+}
+import { sql } from '@vercel/postgres';
+import { auth } from '@clerk/nextjs';
+
+export default async function Admin() {
+  const { userId } = auth();
+  // Replace with YOUR clerk user id
+  if(userId!== 'user_2xxxYOURID') return <div>Access Denied</div>;
+
+  const { rows } = await sql`SELECT * FROM customers`;
+
+  return (
+    <div className="p-10">
+      <h1 className="text-4xl font-bold text-sf-gold">SMARTFORX ADMIN</h1>
+      <p className="text-2xl">MRR: ${(rows.length * 997).toLocaleString()}/mo</p>
+      <table className="w-full mt-6 border border-sf-gold">
+        <thead><tr><th>Email</th><th>User ID</th><th>Sheet</th></tr></thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.user_id} className="border-t border-sf-gold">
+              <td>{r.email}</td><td>{r.user_id}</td><td className="text-xs truncate">{r.sheet_url}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
