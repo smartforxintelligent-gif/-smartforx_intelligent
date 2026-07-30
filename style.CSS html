@@ -1,211 +1,33 @@
-:root {
-  --black: #000;
-  --gold: #D4AF37;
-  --white: #FFF;
-  --gray: #111;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-}
-
-body {
-  background: var(--black);
-  color: var(--white);
-  line-height: 1.6;
-}
-
-a {
-  color: var(--gold);
-  text-decoration: none;
-}
-
-.container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-nav {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--gray);
-  position: sticky;
-  top: 0;
-  background: rgba(0, 0, 0, 0.95);
-  z-index: 100;
-}
-
-.nav-wrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-nav .logo {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 1px;
-}
-
-nav ul {
-  display: flex;
-  list-style: none;
-  gap: 30px;
-}
-
-nav ul li a {
-  color: var(--white);
-  font-weight: 500;
-  transition: 0.3s;
-}
-
-nav ul li a:hover {
-  color: var(--gold);
-}
-
-.btn {
-  padding: 14px 28px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s;
-  display: inline-block;
-  border: none;
-}
-
-.btn-primary {
-  background: var(--gold);
-  color: var(--black);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px var(--gold);
-}
-
-.btn-secondary {
-  border: 2px solid var(--gold);
-  color: var(--gold);
-  background: transparent;
-}
-
-.btn-secondary:hover {
-  background: var(--gold);
-  color: var(--black);
-}
-
-.hero {
-  padding: 120px 0;
-  text-align: center;
-  background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
-}
-
-.hero h1 {
-  font-size: 52px;
-  font-weight: 900;
-  margin-bottom: 20px;
-}
-
-.hero h1 span {
-  color: var(--gold);
-}
-
-.hero p {
-  font-size: 18px;
-  color: #ccc;
-  max-width: 700px;
-  margin: 0 auto 30px;
-}
-
-.hero-ctas {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-}
-
-section {
-  padding: 100px 0;
-}
-
-.section-title {
-  font-size: 36px;
-  font-weight: 800;
-  text-align: center;
-  margin-bottom: 50px;
-}
-
-.section-title span {
-  color: var(--gold);
-}
-
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
-}
-
-.card {
-  background: var(--gray);
-  padding: 40px;
-  border-radius: 12px;
-  border: 1px solid #222;
-  transition: 0.3s;
-}
-
-.card:hover {
-  border-color: var(--gold);
-  transform: translateY(-5px);
-}
-
-.card h3 {
-  color: var(--gold);
-  font-size: 22px;
-  margin-bottom: 15px;
-}
-
-.stats {
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-  background: var(--gray);
-  padding: 50px 0;
-  border-radius: 12px;
-}
-
-.stat h4 {
-  font-size: 32px;
-  color: var(--gold);
-}
-
-.stat p {
-  color: #aaa;
-}
-
-footer {
-  padding: 40px 0;
-  text-align: center;
-  border-top: 1px solid var(--gray);
-  color: #777;
-}
-
-@media(max-width:768px) {
-  .hero h1 {
-    font-size: 36px;
-  }
-
-  nav ul {
-    display: none;
-  }
-
-  .hero-ctas {
-    flex-direction: column;
-  }
-}
-
-[BLACK BACKGROUND] SMARTFORX INTELLIGENT The Self-Optimizing Enterprise We deploy High-Intelligence AI and Zero-Error Systems... [ Book Strategic Demo] [ Explore OMNI CORE] [ 99.9999% Uptime] [ <0.01% Error Rate] [ 24/7 AI Operations]
-@tailwind base; @tailwind components; @tailwind utilities;
-body { background: #0A0A0A; color: white; }
+:root { --black:#000; --gold:#D4AF37; --white:#FFF; --gray:#111; }
+*{margin:0; padding:0; box-sizing:border-box; font-family:'Inter','Segoe UI',sans-serif;}
+body{background:var(--black); color:var(--white); line-height:1.6;}
+a{color:var(--gold); text-decoration:none;}
+.container{width:90%; max-width:1200px; margin:0 auto;}
+nav{padding:20px 0; border-bottom:1px solid var(--gray); position:sticky; top:0; background:rgba(0,0,0,0.95); z-index:100;}
+.nav-wrap{display:flex; justify-content:space-between; align-items:center;}
+nav .logo{font-size:22px; font-weight:800; color:var(--gold); letter-spacing:1px;}
+nav ul{display:flex; list-style:none; gap:30px;}
+nav ul li a{color:var(--white); font-weight:500; transition:0.3s;}
+nav ul li a:hover{color:var(--gold);}
+.btn{padding:14px 28px; border-radius:8px; font-weight:700; cursor:pointer; transition:0.3s; display:inline-block; border:none;}
+.btn-primary{background:var(--gold); color:var(--black);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 0 20px var(--gold);}
+.btn-secondary{border:2px solid var(--gold); color:var(--gold); background:transparent;}
+.btn-secondary:hover{background:var(--gold); color:var(--black);}
+.hero{padding:120px 0; text-align:center; background:radial-gradient(circle at center, #1a1a1a 0%, #000 70%);}
+.hero h1{font-size:52px; font-weight:900; margin-bottom:20px;}
+.hero h1 span{color:var(--gold);}
+.hero p{font-size:18px; color:#ccc; max-width:700px; margin:0 auto 30px;}
+.hero-ctas{display:flex; gap:20px; justify-content:center;}
+section{padding:100px 0;}
+.section-title{font-size:36px; font-weight:800; text-align:center; margin-bottom:50px;}
+.section-title span{color:var(--gold);}
+.grid-3{display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:40px;}
+.card{background:var(--gray); padding:40px; border-radius:12px; border:1px solid #222; transition:0.3s;}
+.card:hover{border-color:var(--gold); transform:translateY(-5px);}
+.card h3{color:var(--gold); font-size:22px; margin-bottom:15px;}
+.stats{display:flex; justify-content:space-around; text-align:center; background:var(--gray); padding:50px 0; border-radius:12px;}
+.stat h4{font-size:32px; color:var(--gold);}
+.stat p{color:#aaa;}
+footer{padding:40px 0; text-align:center; border-top:1px solid var(--gray); color:#777;}
+@media(max-width:768px){.hero h1{font-size:36px;} nav ul{display:none;} .hero-ctas{flex-direction:column;}}
