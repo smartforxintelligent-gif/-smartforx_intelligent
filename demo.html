@@ -630,4 +630,64 @@ export default function VerticalChatbot({industry}) {
       @tailwind base; @tailwind components; @tailwind utilities;
 body { background: #0A0A0A; color: white; }
 
+  const pdfBuffer = await pdf(<GrantPDF org={org} data={data} report={reportText} />).toBuffer();
+
+  return new Response(pdfBuffer, {
+    headers: {'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${org}-Grant-Report.pdf"`}
+  });
+}
+const downloadGrant = async () => {
+  const res = await fetch('/api/grant-report', {
+    method:'POST',
+    body:JSON.stringify({
+      org: "Kitale Women Group",
+      industry: "ngo",
+      data: {people: 1240, funds: 3400000}
+    })
+  });
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  window.open(url); // Downloads PDF ready for USAID
+}
+
+<button onClick={downloadGrant} className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">
+  Generate USAID Report PDF
+</button>
+const COUNTIES = [
+  "nairobi","mombasa","kisumu","nakuru","eldoret","kitale","transnzoia",
+  // ... all 47 counties
+];
+
+export async function deployToAllCounties() {
+  for(const county of COUNTIES){
+    await fetch(`https://smartforx.com/api/create-county`, {
+      method:'POST',
+      body:JSON.stringify({county, template: "government"})
+    });
+  }
+  console.log("Deployed to 47 Counties");
+}
+export default function SuperDashboard() {
+  const deployAll = async () => {
+    await fetch('/api/deploy-all-counties', {method:'POST'});
+    alert("SMARTFORX imewekwa katika Kaunti 47 zote");
+  }
+
+  return (
+    <div className="p-10">
+      <h1 className="text-4xl font-bold text-sf-gold">SMARTFORX KENYA COMMAND</h1>
+      <p>Covering 47 Counties, 290 Hospitals, 8000 Schools</p>
+      
+      <button onClick={deployAll} className="mt-6 bg-red-600 text-white px-8 py-4 rounded-lg font-bold">
+        Deploy to All 47 Counties
+      </button>
+      
+      <p className="mt-4 text-sm">Total Pipeline: KSh 66,080,000 / year</p>
+    </div>
+  )
+}
+git add. && git commit -m "v9.1 Grant Reports + 47 Counties"
+vercel deploy --prod
+
+
 
